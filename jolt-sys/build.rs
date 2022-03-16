@@ -5,7 +5,7 @@ extern crate cmake;
 
 fn main() {
     #[cfg(feature = "bundled")]
-    let path = compile_jolt(Path::new("./jolt/Build"));
+    let _path = compile_jolt(Path::new("./jolt/Build"));
 }
 
 #[cfg(feature = "bundled")]
