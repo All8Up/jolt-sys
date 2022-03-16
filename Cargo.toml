@@ -1,0 +1,11 @@
+[package]
+name = "jolt-sys"
+version = "0.1.0"
+edition = "2021"
+license-file = "LICENSE"
+description = "Fetch and build the Jolt physics library."
+homepage = "https://github.com/All8Up/jolt-sys"
+repository = "https://github.com/All8Up/jolt-sys"
+readme = "README.md"
+
+[dependencies]
