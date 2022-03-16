@@ -9,3 +9,10 @@ repository = "https://github.com/All8Up/jolt-sys"
 readme = "../README.md"
 
 [dependencies]
+
+[build-dependencies]
+cmake = { version = "0.1.48", optional = true }
+
+[features]
+default = ["bundled"]
+bundled = ["cmake"]
