@@ -54,9 +54,36 @@ fn generate_ffi(includes: &Path) {
             .into_iter(),
         )
         .rustfmt_bindings(true)
-        .allowlist_type("JPH.*")
-        .allowlist_var("JPH.*")
-        .allowlist_function("JPH.*");
+        .generate_comments(false)
+        .opaque_type("std::*")
+        .allowlist_var("");
+
+    // List the allowed types for generation.
+    let allowed_types = [(
+        "JPH",
+        [
+            "ContactListener",
+            "BroadPhaselayer",
+            "BroadPhaseLayerInterface",
+            "BodyActivationListener",
+        ],
+    )];
+    for namespace in allowed_types {
+        for type_name in namespace.1 {
+            bindings = bindings.allowlist_type(String::from(namespace.0) + "::" + type_name);
+        }
+    }
+
+    // List the allowed functions for generation.
+    let allowed_functions = [
+        ("JPH", ["RegisterTypes"]),
+        ("JPH", ["*"]),
+    ];
+    for namespace in allowed_functions {
+        for func_name in namespace.1 {
+            bindings = bindings.allowlist_function(String::from(namespace.0) + "::" + func_name);
+        }
+    }
 
     // List the headers we intend to generate bindings for.
     let headers = [
