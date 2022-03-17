@@ -13,6 +13,7 @@ links = "Jolt"
 
 [build-dependencies]
 cmake = { version = "0.1.48" }
+bindgen = "0.59.2"
 
 [features]
 default = []
