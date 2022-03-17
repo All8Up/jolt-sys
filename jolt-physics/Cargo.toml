@@ -2,6 +2,11 @@
 name = "jolt-physics"
 version = "0.1.0"
 edition = "2021"
+description = "Wrapper for the Jolt physics library.."
+homepage = "https://github.com/All8Up/jolt-sys"
+repository = "https://github.com/All8Up/jolt-sys"
+license = "MIT"
+readme = "README.md"
 
 [dependencies]
 jolt-sys = "0.1.0"
