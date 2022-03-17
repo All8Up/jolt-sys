@@ -1,18 +1,37 @@
 use std::path::{Path, PathBuf};
 
-#[cfg(feature = "bundled")]
-extern crate cmake;
-
 fn main() {
-    #[cfg(feature = "bundled")]
-    let _path = compile_jolt(Path::new("./jolt/Build"));
+    // Get needed cargo options.
+    let opt_level = std::env::var("OPT_LEVEL").expect("Cargo build scripts always have OPT_LEVEL");
+
+    // Compile Jolt.
+    let compiled_lib_path = compile_jolt(Path::new("./jolt/Build"), &opt_level);
+
+    // Adjust the library source path based on the opt level.
+    let lib_out_path = if opt_level == "0" {
+        compiled_lib_path.join("build/Debug")
+    } else {
+        compiled_lib_path.join("build/Release")
+    };
+
+    // Set the include paths.
+    println!("cargo::include={}", "./jolt/Jolt");
+
+    // Set the link search path.
+    println!("cargo:rustc-link-search={}", lib_out_path.display());
+
+    // And link the library.
+    println!("cargo:rustc-link-lib=static=Jolt");
 }
 
-#[cfg(feature = "bundled")]
-fn compile_jolt(build_path: &Path) -> PathBuf {
+fn compile_jolt(build_path: &Path, opt_level: &str) -> PathBuf {
+    // Other than forcing the static crt, just need to adjust the config
+    // to match OPT_LEVEL.
     let mut config = cmake::Config::new(build_path);
-    config.profile("Release");
-    config.build_target("ALL_BUILD");
-
-    config.build()
+    if opt_level == "0" {
+        config.profile("Debug");
+    } else {
+        config.profile("Release");
+    }
+    config.static_crt(true).build_target("Jolt").build()
 }
