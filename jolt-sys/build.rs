@@ -41,7 +41,7 @@ fn compile_jolt(build_path: &Path, opt_level: &str) -> PathBuf {
 
 fn generate_ffi(includes: &Path) {
     // Generate the required FFI files from the Jolt headers.
-    let bindings = bindgen::Builder::default()
+    let mut bindings = bindgen::Builder::default()
         .clang_args(
             [
                 "-x",
@@ -54,15 +54,33 @@ fn generate_ffi(includes: &Path) {
             .into_iter(),
         )
         .rustfmt_bindings(true)
-        .header(includes.join("Jolt.h").to_str().unwrap())
-        .allowlist_type("")
-        .allowlist_var("")
-        .allowlist_function("")
+        .allowlist_type("JPH.*")
+        .allowlist_var("JPH.*")
+        .allowlist_function("JPH.*");
+
+    // List the headers we intend to generate bindings for.
+    let headers = [
+        "Jolt.h",
+        "Core/TempAllocator.h",
+        "Core/JobSystemThreadPool.h",
+        "Physics/PhysicsSettings.h",
+        "Physics/PhysicsSystem.h",
+        "Physics/Collision/Shape/BoxShape.h",
+        "Physics/Collision/Shape/SphereShape.h",
+        "Physics/Body/BodyCreationSettings.h",
+        "Physics/Body/BodyActivationListener.h",
+    ];
+    // Add the headers.
+    for header in headers {
+        bindings = bindings.header(includes.join(header).to_str().unwrap());
+    }
+
+    let bindings = bindings
         .generate()
         .expect("Unable to generate ittnotify bindings.");
 
     let out_path = PathBuf::from(std::env::var("OUT_DIR").unwrap());
     bindings
-        .write_to_file(out_path.join("jolt_h.rs"))
+        .write_to_file(out_path.join("jolt.rs"))
         .expect("Could not write bindings!");
 }
