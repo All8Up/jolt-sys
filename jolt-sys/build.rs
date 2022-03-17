@@ -28,14 +28,14 @@ fn main() {
 }
 
 fn compile_jolt(build_path: &Path, opt_level: &str) -> PathBuf {
-    // Other than forcing the static crt, just need to adjust the config
-    // to match OPT_LEVEL.
     let mut config = cmake::Config::new(build_path);
+    config.generator("Visual Studio 16 2019");
     if opt_level == "0" {
         config.profile("Debug");
     } else {
         config.profile("Release");
     }
+    config.define("USE_SSE4_2", "ON");
     config.static_crt(true).build_target("Jolt").build()
 }
 
@@ -47,6 +47,8 @@ fn generate_ffi(includes: &Path) {
                 "-x",
                 "c++",
                 "-std=c++17",
+                "-msse4.2",
+                "-mpopcnt",
                 &format!("-I{}", includes.display()),
             ]
             .into_iter(),
