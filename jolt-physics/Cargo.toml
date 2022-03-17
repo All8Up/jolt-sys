@@ -4,4 +4,4 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-jolt-sys = { path = "./../jolt-sys" }
+jolt-sys = "0.1.0"
