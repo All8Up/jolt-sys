@@ -3,3 +3,8 @@
 #![allow(non_snake_case)]
 
 include!(concat!(env!("OUT_DIR"), "/Jolt.rs"));
+
+#[link(name = "register_types")]
+extern "C" {
+    pub fn register_types();
+}

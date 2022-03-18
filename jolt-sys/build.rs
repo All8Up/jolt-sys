@@ -1,37 +1,66 @@
+use normpath::PathExt;
 use std::path::{Path, PathBuf};
 
 fn main() {
     // Rerun on changes.
     println!("cargo:rerun-if-changed=build.rs");
     println!("cargo:rerun-if-changed=jolt");
+    println!("cargo:rerun-if-changed=jolt-wrapper");
 
     // Get needed cargo options.
-    let opt_level = std::env::var("OPT_LEVEL").expect("Cargo build scripts always have OPT_LEVEL");
+    let out_dir =
+        PathBuf::from(std::env::var("OUT_DIR").expect("OUT_DIR must be set in build scripts."));
+    let opt_level = std::env::var("OPT_LEVEL").expect("OPT_LEVEL must be set in build scripts.");
+
+    // Build up various needed paths.
+    let jolt_base_path = Path::new("./jolt");
+    let jolt_include_path = jolt_base_path.clone();
+    let jolt_build_path = jolt_base_path.join("Build");
+    let jolt_out_path = out_dir.join("jolt");
+    let _ = std::fs::create_dir(&jolt_out_path);
 
     // Compile Jolt.
-    let compiled_lib_path = compile_jolt(Path::new("./jolt/Build"), &opt_level);
+    let jolt_binary_path = compile_jolt(&opt_level, &jolt_build_path, &jolt_out_path);
+    let jolt_binary_path = jolt_binary_path.join(if opt_level == "0" {
+        "build/Debug"
+    } else {
+        "build/Release"
+    });
 
     // Generate FFI.
-    generate_ffi(Path::new("./jolt/Jolt"));
+    generate_ffi(&jolt_include_path);
 
-    // Adjust the library source path based on the opt level.
-    let lib_out_path = if opt_level == "0" {
-        compiled_lib_path.join("build/Debug")
+    // Compile wrapper.
+    let wrapper_base_path = Path::new("./jolt-wrapper");
+    let wrapper_include_path = wrapper_base_path.join("inc");
+    let wrapper_build_path = wrapper_base_path.clone();
+    let wrapper_out_path = out_dir.join("wrapper");
+    let _ = std::fs::create_dir(&wrapper_out_path);
+    let wrapper_binary_path = compile_wrapper(
+        &opt_level,
+        &wrapper_build_path,
+        &wrapper_out_path,
+        &jolt_include_path,
+        &jolt_binary_path,
+    );
+    let wrapper_binary_path = wrapper_binary_path.join(if opt_level == "0" {
+        "build/Debug"
     } else {
-        compiled_lib_path.join("build/Release")
-    };
+        "build/Release"
+    });
 
     // Set the include paths.
-    println!("cargo::include={}", "./jolt/Jolt");
+    println!("cargo:include={}", jolt_include_path.display());
+    println!("cargo:include={}", wrapper_include_path.display());
 
     // Set the link search path.
-    println!("cargo:rustc-link-search={}", lib_out_path.display());
+    println!("cargo:rustc-link-search={}", wrapper_binary_path.display());
 
     // And link the library.
-    println!("cargo:rustc-link-lib=static=Jolt");
+    println!("cargo:rustc-link-lib=static=jolt-wrapper");
 }
 
-fn compile_jolt(build_path: &Path, opt_level: &str) -> PathBuf {
+fn compile_jolt(opt_level: &str, build_path: &Path, out_path: &Path) -> PathBuf {
     let mut config = cmake::Config::new(build_path);
     config.generator("Visual Studio 16 2019");
     if opt_level == "0" {
@@ -40,7 +69,48 @@ fn compile_jolt(build_path: &Path, opt_level: &str) -> PathBuf {
         config.profile("Release");
     }
     config.define("USE_SSE4_2", "ON");
+    config.out_dir(out_path);
     config.static_crt(true).build_target("Jolt").build()
+}
+
+fn compile_wrapper(
+    opt_level: &str,
+    build_path: &Path,
+    out_path: &Path,
+    jolt_include_path: &Path,
+    jolt_binary_path: &Path,
+) -> PathBuf {
+    let mut config = cmake::Config::new(build_path);
+    config.generator("Visual Studio 16 2019");
+    if opt_level == "0" {
+        config.profile("Debug");
+    } else {
+        config.profile("Release");
+    }
+    config.define(
+        "JOLT_INCLUDE_PATH",
+        format!(
+            "{}",
+            jolt_include_path
+                .normalize()
+                .expect("Path must exist.")
+                .as_path()
+                .display()
+        ),
+    );
+    config.define(
+        "JOLT_BINARY_PATH",
+        format!(
+            "{}",
+            jolt_binary_path
+                .normalize()
+                .expect("Path must exist.")
+                .as_path()
+                .display()
+        ),
+    );
+    config.out_dir(&out_path);
+    config.static_crt(true).build_target("jolt-wrapper").build()
 }
 
 fn generate_ffi(includes: &Path) {
@@ -53,7 +123,7 @@ fn generate_ffi(includes: &Path) {
                 "-std=c++17",
                 "-msse4.2",
                 "-mpopcnt",
-                &format!("-I{}", includes.display()),
+                &format!("-I{}/Jolt", includes.display()),
             ]
             .into_iter(),
         )
@@ -76,15 +146,15 @@ fn generate_ffi(includes: &Path) {
     // List the headers we intend to generate bindings for.
     // Just the headers from hello world for now.
     let headers = [
-        "Jolt.h",
-        "Core/TempAllocator.h",
-        "Core/JobSystemThreadPool.h",
-        "Physics/PhysicsSettings.h",
-        "Physics/PhysicsSystem.h",
-        "Physics/Collision/Shape/BoxShape.h",
-        "Physics/Collision/Shape/SphereShape.h",
-        "Physics/Body/BodyCreationSettings.h",
-        "Physics/Body/BodyActivationListener.h",
+        "Jolt/Jolt.h",
+        "Jolt/Core/TempAllocator.h",
+        "Jolt/Core/JobSystemThreadPool.h",
+        "Jolt/Physics/PhysicsSettings.h",
+        "Jolt/Physics/PhysicsSystem.h",
+        "Jolt/Physics/Collision/Shape/BoxShape.h",
+        "Jolt/Physics/Collision/Shape/SphereShape.h",
+        "Jolt/Physics/Body/BodyCreationSettings.h",
+        "Jolt/Physics/Body/BodyActivationListener.h",
     ];
     // Add the headers.
     for header in headers {

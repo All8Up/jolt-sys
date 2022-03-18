@@ -2,7 +2,6 @@
 mod tests {
     #[test]
     fn it_works() {
-        let result = 2 + 2;
-        assert_eq!(result, 4);
+        unsafe { jolt_sys::register_types() };
     }
 }

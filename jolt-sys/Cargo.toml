@@ -7,13 +7,14 @@ homepage = "https://github.com/All8Up/jolt-sys"
 repository = "https://github.com/All8Up/jolt-sys"
 license = "MIT"
 readme = "README.md"
-links = "Jolt"
+links = "jolt-wrapper"
 
 [dependencies]
 
 [build-dependencies]
 cmake = { version = "0.1.48" }
 bindgen = "0.59.2"
+normpath = "0.3"
 
 [features]
 default = []
