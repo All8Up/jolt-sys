@@ -1,6 +1,6 @@
 [package]
 name = "jolt-physics"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 description = "Wrapper for the Jolt physics library.."
 homepage = "https://github.com/All8Up/jolt-sys"
