@@ -9,4 +9,4 @@ license = "MIT"
 readme = "README.md"
 
 [dependencies]
-jolt-sys = "0.1.0"
+jolt-sys = "0.1.2"
