@@ -1,6 +1,10 @@
 use std::path::{Path, PathBuf};
 
 fn main() {
+    // Rerun on changes.
+    println!("cargo:rerun-if-changed=build.rs");
+    println!("cargo:rerun-if-changed=jolt");
+
     // Get needed cargo options.
     let opt_level = std::env::var("OPT_LEVEL").expect("Cargo build scripts always have OPT_LEVEL");
 
@@ -59,33 +63,18 @@ fn generate_ffi(includes: &Path) {
         .allowlist_var("");
 
     // List the allowed types for generation.
-    let allowed_types = [(
-        "JPH",
-        [
-            "ContactListener",
-            "BroadPhaselayer",
-            "BroadPhaseLayerInterface",
-            "BodyActivationListener",
-        ],
-    )];
+    // This is unfortunately about the only thing we gain via bindgen.
+    // The usage of STL+C++ API is overwhelming things no matter how
+    // I approach it.
+    let allowed_types = [("JPH", ["BroadPhaseLayer"])];
     for namespace in allowed_types {
         for type_name in namespace.1 {
             bindings = bindings.allowlist_type(String::from(namespace.0) + "::" + type_name);
         }
     }
 
-    // List the allowed functions for generation.
-    let allowed_functions = [
-        ("JPH", ["RegisterTypes"]),
-        ("JPH", ["*"]),
-    ];
-    for namespace in allowed_functions {
-        for func_name in namespace.1 {
-            bindings = bindings.allowlist_function(String::from(namespace.0) + "::" + func_name);
-        }
-    }
-
     // List the headers we intend to generate bindings for.
+    // Just the headers from hello world for now.
     let headers = [
         "Jolt.h",
         "Core/TempAllocator.h",
@@ -102,9 +91,7 @@ fn generate_ffi(includes: &Path) {
         bindings = bindings.header(includes.join(header).to_str().unwrap());
     }
 
-    let bindings = bindings
-        .generate()
-        .expect("Unable to generate ittnotify bindings.");
+    let bindings = bindings.generate().expect("Unable to generate jolt types.");
 
     let out_path = PathBuf::from(std::env::var("OUT_DIR").unwrap());
     bindings
