@@ -72,6 +72,7 @@ fn compile_jolt(opt_level: &str, build_path: &Path, out_path: &Path) -> PathBuf 
     config.define("TARGET_UNIT_TESTS", "OFF");
     config.define("TARGET_HELLO_WORLD", "OFF");
     config.define("TARGET_PERFORMANCE_TEST", "OFF");
+    config.define("TARGET_WINDOWS_ONLY", "OFF");
     config.out_dir(out_path);
     config.static_crt(true).build_target("Jolt").build()
 }
