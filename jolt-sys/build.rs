@@ -36,6 +36,7 @@ fn main() {
     let wrapper_build_path = wrapper_base_path.clone();
     let wrapper_out_path = out_dir.join("wrapper");
     let _ = std::fs::create_dir(&wrapper_out_path);
+
     let wrapper_binary_path = compile_wrapper(
         &opt_level,
         &wrapper_build_path,
@@ -59,13 +60,27 @@ fn main() {
     // And link the library.
     println!("cargo:rustc-link-lib=static=Jolt");
     println!("cargo:rustc-link-lib=static=jolt-wrapper");
+
+    // Add OS required libraries.
+    println!("cargo:rustc-link-lib=libvcruntimed");
+    println!("cargo:rustc-link-lib=ucrtd");
+    println!("cargo:rustc-link-lib=advapi32");
+    println!("cargo:rustc-link-lib=ws2_32");
+    println!("cargo:rustc-link-lib=userenv");
+    println!("cargo:rustc-link-lib=shell32");
+
+    // Add debug linkage.
+    println!("cargo:rustc-link-arg=/VERBOSE:LIB");
 }
 
 fn compile_jolt(opt_level: &str, build_path: &Path, out_path: &Path) -> PathBuf {
     let mut config = cmake::Config::new(build_path);
     config.generator("Visual Studio 16 2019");
+    config.always_configure(true);
     if opt_level == "0" {
+        println!("** Compile Jolt Debug **");
         config.profile("Debug");
+        config.define("_DEBUG", "");
     } else {
         config.profile("Release");
     }
@@ -85,9 +100,12 @@ fn compile_wrapper(
     jolt_include_path: &Path,
 ) -> PathBuf {
     let mut config = cmake::Config::new(build_path);
+    config.always_configure(true);
     config.generator("Visual Studio 16 2019");
     if opt_level == "0" {
+        println!("** Compile Wrapper Debug **");
         config.profile("Debug");
+        config.define("_DEBUG", "");
     } else {
         config.profile("Release");
     }
