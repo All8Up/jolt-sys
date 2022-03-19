@@ -13,10 +13,10 @@ fn main() {
     let opt_level = std::env::var("OPT_LEVEL").expect("OPT_LEVEL must be set in build scripts.");
 
     // Build up various needed paths.
-    let jolt_base_path = Path::new("./jolt");
+    let jolt_base_path = Path::new("./jolt-physics");
     let jolt_include_path = jolt_base_path.clone();
     let jolt_build_path = jolt_base_path.join("Build");
-    let jolt_out_path = out_dir.join("jolt");
+    let jolt_out_path = out_dir.join("jolt-physics");
     let _ = std::fs::create_dir(&jolt_out_path);
 
     // Compile Jolt.
@@ -55,9 +55,6 @@ fn main() {
 
     // Set the link search path.
     println!("cargo:rustc-link-search={}", wrapper_binary_path.display());
-
-    // And link the library.
-    println!("cargo:rustc-link-lib=static=jolt-wrapper");
 }
 
 fn compile_jolt(opt_level: &str, build_path: &Path, out_path: &Path) -> PathBuf {

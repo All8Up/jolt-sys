@@ -1,0 +1,4 @@
+[submodule "jolt-sys/jolt-physics"]
+	path = jolt-sys/jolt-physics
+	url = https://github.com/All8Up/JoltPhysics.git
+	branch = minimal

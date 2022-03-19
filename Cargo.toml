@@ -1,3 +1,6 @@
 [workspace]
 resolver = "2"
 members = ["jolt-sys", "jolt-physics"]
+
+[patch.crates-io]
+jolt-sys = { path = "./jolt-sys" }

@@ -4,7 +4,7 @@
 
 include!(concat!(env!("OUT_DIR"), "/Jolt.rs"));
 
-#[link(name = "register_types")]
+#[link(name = "jolt-wrapper")]
 extern "C" {
     pub fn register_types();
 }
