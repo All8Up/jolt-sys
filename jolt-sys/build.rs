@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 fn main() {
     // Rerun on changes.
     println!("cargo:rerun-if-changed=build.rs");
-    println!("cargo:rerun-if-changed=jolt");
+    println!("cargo:rerun-if-changed=jolt-physics");
     println!("cargo:rerun-if-changed=jolt-wrapper");
 
     // Get needed cargo options.
@@ -41,7 +41,6 @@ fn main() {
         &wrapper_build_path,
         &wrapper_out_path,
         &jolt_include_path,
-        &jolt_binary_path,
     );
     let wrapper_binary_path = wrapper_binary_path.join(if opt_level == "0" {
         "build/Debug"
@@ -54,7 +53,12 @@ fn main() {
     println!("cargo:include={}", wrapper_include_path.display());
 
     // Set the link search path.
+    println!("cargo:rustc-link-search={}", jolt_binary_path.display());
     println!("cargo:rustc-link-search={}", wrapper_binary_path.display());
+
+    // And link the library.
+    println!("cargo:rustc-link-lib=static=Jolt");
+    println!("cargo:rustc-link-lib=static=jolt-wrapper");
 }
 
 fn compile_jolt(opt_level: &str, build_path: &Path, out_path: &Path) -> PathBuf {
@@ -71,7 +75,7 @@ fn compile_jolt(opt_level: &str, build_path: &Path, out_path: &Path) -> PathBuf 
     config.define("TARGET_PERFORMANCE_TEST", "OFF");
     config.define("TARGET_WINDOWS_ONLY", "OFF");
     config.out_dir(out_path);
-    config.static_crt(true).build_target("Jolt").build()
+    config.build_target("Jolt").build()
 }
 
 fn compile_wrapper(
@@ -79,7 +83,6 @@ fn compile_wrapper(
     build_path: &Path,
     out_path: &Path,
     jolt_include_path: &Path,
-    jolt_binary_path: &Path,
 ) -> PathBuf {
     let mut config = cmake::Config::new(build_path);
     config.generator("Visual Studio 16 2019");
@@ -99,19 +102,8 @@ fn compile_wrapper(
                 .display()
         ),
     );
-    config.define(
-        "JOLT_BINARY_PATH",
-        format!(
-            "{}",
-            jolt_binary_path
-                .normalize()
-                .expect("Path must exist.")
-                .as_path()
-                .display()
-        ),
-    );
     config.out_dir(&out_path);
-    config.static_crt(true).build_target("jolt-wrapper").build()
+    config.build_target("jolt-wrapper").build()
 }
 
 fn generate_ffi(includes: &Path) {
