@@ -68,9 +68,6 @@ fn main() {
     println!("cargo:rustc-link-lib=ws2_32");
     println!("cargo:rustc-link-lib=userenv");
     println!("cargo:rustc-link-lib=shell32");
-
-    // Add debug linkage.
-    println!("cargo:rustc-link-arg=/VERBOSE:LIB");
 }
 
 fn compile_jolt(opt_level: &str, build_path: &Path, out_path: &Path) -> PathBuf {
@@ -78,9 +75,7 @@ fn compile_jolt(opt_level: &str, build_path: &Path, out_path: &Path) -> PathBuf 
     config.generator("Visual Studio 16 2019");
     config.always_configure(true);
     if opt_level == "0" {
-        println!("** Compile Jolt Debug **");
         config.profile("Debug");
-        config.define("_DEBUG", "");
     } else {
         config.profile("Release");
     }
@@ -103,9 +98,7 @@ fn compile_wrapper(
     config.always_configure(true);
     config.generator("Visual Studio 16 2019");
     if opt_level == "0" {
-        println!("** Compile Wrapper Debug **");
         config.profile("Debug");
-        config.define("_DEBUG", "");
     } else {
         config.profile("Release");
     }
