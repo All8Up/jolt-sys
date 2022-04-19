@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 fn main() {
     // Rerun on changes.
     println!("cargo:rerun-if-changed=build.rs");
-    println!("cargo:rerun-if-changed=jolt-physics");
+    println!("cargo:rerun-if-changed=./../3rd_party/JoltPhysics");
     println!("cargo:rerun-if-changed=jolt-wrapper");
 
     // Get needed cargo options.
@@ -13,10 +13,10 @@ fn main() {
     let opt_level = std::env::var("OPT_LEVEL").expect("OPT_LEVEL must be set in build scripts.");
 
     // Build up various needed paths.
-    let jolt_base_path = Path::new("./jolt-physics");
+    let jolt_base_path = Path::new("./../3rd_party/JoltPhysics");
     let jolt_include_path = jolt_base_path.clone();
     let jolt_build_path = jolt_base_path.join("Build");
-    let jolt_out_path = out_dir.join("jolt-physics");
+    let jolt_out_path = out_dir.join("JoltPhysics");
     let _ = std::fs::create_dir(&jolt_out_path);
 
     // Compile Jolt.
